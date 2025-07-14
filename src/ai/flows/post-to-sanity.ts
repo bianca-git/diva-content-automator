@@ -31,7 +31,7 @@ const postToSanityFlow = ai.defineFlow(
       _type: 'post',
       title,
       author: {
-        _ref: 'f946824a-f571-4475-ab1a-469279581b37',
+        _ref: author,
         _type: 'reference',
       },
       body: [
