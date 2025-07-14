@@ -5,6 +5,7 @@ import { generateBlogPost } from '@/ai/flows/generate-blog-post';
 import { generateDownloadable } from '@/ai/flows/generate-downloadable';
 import { generateVisual } from '@/ai/flows/generate-visual';
 import { generateSocialPosts } from '@/ai/flows/generate-social-posts';
+import { postToSanity } from '@/ai/flows/post-to-sanity';
 import { useToast } from "@/hooks/use-toast";
 import { InputPanel } from '@/components/app/input-panel';
 import { WorkflowPanel } from '@/components/app/workflow-panel';
@@ -37,12 +38,14 @@ export default function Home() {
   const [downloadableContent, setDownloadableContent] = useState<string | null>(null);
   const [visual, setVisual] = useState<Visual | null>(null);
   const [socialPosts, setSocialPosts] = useState<SocialPosts | null>(null);
+  const [sanityPostId, setSanityPostId] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState({
     blog: false,
     downloadable: false,
     visual: false,
     social: false,
+    sanity: false,
   });
 
   const { toast } = useToast();
@@ -162,7 +165,26 @@ export default function Home() {
     }
   };
 
-  const isGenerating = isLoading.blog || isLoading.visual || isLoading.social || isLoading.downloadable;
+  const handlePostToSanity = async () => {
+    if (!selectedTopic || !blogPost) return;
+    setIsLoading(prev => ({ ...prev, sanity: true }));
+    try {
+      const result = await postToSanity({
+        title: selectedTopic.Title,
+        body: blogPost,
+        author: "Digital Diva"
+      });
+      setSanityPostId(result.postId);
+      toast({ title: "Posted to Sanity", description: `Post ID: ${result.postId}` });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: "Sanity Post Error", description: "Failed to post to Sanity." });
+    } finally {
+      setIsLoading(prev => ({ ...prev, sanity: false }));
+    }
+  };
+
+  const isGenerating = isLoading.blog || isLoading.visual || isLoading.social || isLoading.downloadable || isLoading.sanity;
 
   return (
     <main className="min-h-screen bg-background">
@@ -191,11 +213,13 @@ export default function Home() {
             downloadableContent={downloadableContent}
             visual={visual}
             socialPosts={socialPosts}
+            sanityPostId={sanityPostId}
             isLoading={isLoading}
             onGenerateBlogPost={handleGenerateBlogPost}
             onGenerateDownloadable={handleGenerateDownloadable}
             onGenerateVisual={handleGenerateVisual}
             onGenerateSocialPosts={handleGenerateSocialPosts}
+            onPostToSanity={handlePostToSanity}
           />
         </div>
       </div>

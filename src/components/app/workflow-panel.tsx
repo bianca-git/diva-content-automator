@@ -14,11 +14,13 @@ type WorkflowPanelProps = {
   downloadableContent: string | null; // This is now a base64 PDF string
   visual: Visual | null;
   socialPosts: SocialPosts | null;
-  isLoading: { blog: boolean; downloadable: boolean; visual: boolean; social: boolean; };
+  sanityPostId: string | null;
+  isLoading: { blog: boolean; downloadable: boolean; visual: boolean; social: boolean; sanity: boolean; };
   onGenerateBlogPost: () => void;
   onGenerateDownloadable: () => void;
   onGenerateVisual: () => void;
   onGenerateSocialPosts: () => void;
+  onPostToSanity: () => void;
 };
 
 export function WorkflowPanel({
@@ -27,11 +29,13 @@ export function WorkflowPanel({
   downloadableContent,
   visual,
   socialPosts,
+  sanityPostId,
   isLoading,
   onGenerateBlogPost,
   onGenerateDownloadable,
   onGenerateVisual,
   onGenerateSocialPosts,
+  onPostToSanity,
 }: WorkflowPanelProps) {
   if (!selectedTopic) {
     return (
@@ -146,6 +150,22 @@ export function WorkflowPanel({
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+      </WorkflowStep>
+
+      <WorkflowStep
+        stepNumber={5}
+        title="Post to Sanity"
+        isUnlocked={!!blogPost}
+        isGenerating={isLoading.sanity}
+        onGenerate={onPostToSanity}
+        hasContent={!!sanityPostId}
+      >
+        {sanityPostId && (
+          <div className="space-y-4 text-center">
+            <p className="text-muted-foreground">Successfully posted to Sanity!</p>
+            <p className="text-sm text-muted-foreground">Post ID: {sanityPostId}</p>
           </div>
         )}
       </WorkflowStep>
