@@ -4,7 +4,7 @@ import type { Topic } from '@/app/page';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area';
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from '@/lib/utils';
 import { Upload, FileText } from 'lucide-react';
 
@@ -47,8 +47,8 @@ export function InputPanel({ topics, selectedTopic, onFileChange, onTopicSelect,
                   className={cn(
                     "w-full text-left p-3 rounded-md border transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
                     selectedTopic?.Title === topic.Title
-                      ? "bg-primary/10 border-primary text-primary-foreground font-semibold"
-                      : "hover:bg-accent/50 hover:border-accent"
+                      ? "bg-primary/10 border-primary text-primary font-semibold"
+                      : "hover:bg-accent/10"
                   )}
                 >
                   {topic.Title}
