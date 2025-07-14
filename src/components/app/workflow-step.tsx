@@ -8,6 +8,7 @@ import { Separator } from "../ui/separator";
 type WorkflowStepProps = {
   stepNumber: number;
   title: string;
+  subtitle?: string;
   isUnlocked: boolean;
   isGenerating: boolean;
   hasContent: boolean;
@@ -15,7 +16,7 @@ type WorkflowStepProps = {
   children: React.ReactNode;
 };
 
-export function WorkflowStep({ stepNumber, title, isUnlocked, isGenerating, hasContent, onGenerate, children }: WorkflowStepProps) {
+export function WorkflowStep({ stepNumber, title, subtitle, isUnlocked, isGenerating, hasContent, onGenerate, children }: WorkflowStepProps) {
   return (
     <Card className={!isUnlocked ? "bg-secondary/50" : ""}>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -25,7 +26,7 @@ export function WorkflowStep({ stepNumber, title, isUnlocked, isGenerating, hasC
             </div>
             <div>
                 <CardTitle className="font-headline">{title}</CardTitle>
-                <CardDescription>Step {stepNumber} of the content workflow</CardDescription>
+                <CardDescription>{subtitle || `Step ${stepNumber} of the content workflow`}</CardDescription>
             </div>
         </div>
         {isUnlocked && !hasContent && (

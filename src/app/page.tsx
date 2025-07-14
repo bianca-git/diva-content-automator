@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { generateBlogPost } from '@/ai/flows/generate-blog-post';
+import { generateDownloadable } from '@/ai/flows/generate-downloadable';
 import { generateVisual } from '@/ai/flows/generate-visual';
 import { generateSocialPosts } from '@/ai/flows/generate-social-posts';
 import { useToast } from "@/hooks/use-toast";
@@ -33,11 +34,13 @@ export default function Home() {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   
   const [blogPost, setBlogPost] = useState<string | null>(null);
+  const [downloadableContent, setDownloadableContent] = useState<string | null>(null);
   const [visual, setVisual] = useState<Visual | null>(null);
   const [socialPosts, setSocialPosts] = useState<SocialPosts | null>(null);
 
   const [isLoading, setIsLoading] = useState({
     blog: false,
+    downloadable: false,
     visual: false,
     social: false,
   });
@@ -87,6 +90,7 @@ export default function Home() {
   const handleTopicSelect = (topic: Topic | null) => {
     setSelectedTopic(topic);
     setBlogPost(null);
+    setDownloadableContent(null);
     setVisual(null);
     setSocialPosts(null);
   };
@@ -106,6 +110,24 @@ export default function Home() {
       toast({ variant: 'destructive', title: "Blog Post Error", description: "Failed to generate blog post." });
     } finally {
       setIsLoading(prev => ({ ...prev, blog: false }));
+    }
+  };
+
+  const handleGenerateDownloadable = async () => {
+    if (!selectedTopic || !blogPost) return;
+    setIsLoading(prev => ({ ...prev, downloadable: true }));
+    try {
+      const result = await generateDownloadable({
+        title: selectedTopic.Title,
+        blogPost: blogPost,
+        downloadableType: selectedTopic.Downloadable
+      });
+      setDownloadableContent(result.downloadableContent);
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: "Downloadable Error", description: "Failed to generate downloadable content." });
+    } finally {
+      setIsLoading(prev => ({ ...prev, downloadable: false }));
     }
   };
 
@@ -140,7 +162,7 @@ export default function Home() {
     }
   };
 
-  const isGenerating = isLoading.blog || isLoading.visual || isLoading.social;
+  const isGenerating = isLoading.blog || isLoading.visual || isLoading.social || isLoading.downloadable;
 
   return (
     <main className="min-h-screen bg-background">
@@ -166,10 +188,12 @@ export default function Home() {
           <WorkflowPanel
             selectedTopic={selectedTopic}
             blogPost={blogPost}
+            downloadableContent={downloadableContent}
             visual={visual}
             socialPosts={socialPosts}
             isLoading={isLoading}
             onGenerateBlogPost={handleGenerateBlogPost}
+            onGenerateDownloadable={handleGenerateDownloadable}
             onGenerateVisual={handleGenerateVisual}
             onGenerateSocialPosts={handleGenerateSocialPosts}
           />

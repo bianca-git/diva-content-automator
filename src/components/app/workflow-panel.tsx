@@ -10,10 +10,12 @@ import { Separator } from '../ui/separator';
 type WorkflowPanelProps = {
   selectedTopic: Topic | null;
   blogPost: string | null;
+  downloadableContent: string | null;
   visual: Visual | null;
   socialPosts: SocialPosts | null;
-  isLoading: { blog: boolean; visual: boolean; social: boolean; };
+  isLoading: { blog: boolean; downloadable: boolean; visual: boolean; social: boolean; };
   onGenerateBlogPost: () => void;
+  onGenerateDownloadable: () => void;
   onGenerateVisual: () => void;
   onGenerateSocialPosts: () => void;
 };
@@ -21,10 +23,12 @@ type WorkflowPanelProps = {
 export function WorkflowPanel({
   selectedTopic,
   blogPost,
+  downloadableContent,
   visual,
   socialPosts,
   isLoading,
   onGenerateBlogPost,
+  onGenerateDownloadable,
   onGenerateVisual,
   onGenerateSocialPosts,
 }: WorkflowPanelProps) {
@@ -60,8 +64,27 @@ export function WorkflowPanel({
 
       <WorkflowStep
         stepNumber={2}
-        title="Generate Visual"
+        title="Generate Digital Elixir"
+        subtitle={`Type: ${selectedTopic.Downloadable}`}
         isUnlocked={!!blogPost}
+        isGenerating={isLoading.downloadable}
+        onGenerate={onGenerateDownloadable}
+        hasContent={!!downloadableContent}
+      >
+        {downloadableContent && (
+          <div className="space-y-4">
+            <div className="prose prose-sm max-w-none h-96 overflow-y-auto p-4 border rounded-md bg-secondary/30">
+              <pre className="whitespace-pre-wrap font-body text-sm">{downloadableContent}</pre>
+            </div>
+            <CopyButton textToCopy={downloadableContent} />
+          </div>
+        )}
+      </WorkflowStep>
+
+      <WorkflowStep
+        stepNumber={3}
+        title="Generate Visual"
+        isUnlocked={!!downloadableContent}
         isGenerating={isLoading.visual}
         onGenerate={onGenerateVisual}
         hasContent={!!visual}
@@ -91,7 +114,7 @@ export function WorkflowPanel({
       </WorkflowStep>
 
       <WorkflowStep
-        stepNumber={3}
+        stepNumber={4}
         title="Generate Social Posts"
         isUnlocked={!!visual}
         isGenerating={isLoading.social}
