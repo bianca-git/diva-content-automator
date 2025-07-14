@@ -32,12 +32,19 @@ const imageConceptPrompt = ai.definePrompt({
   name: 'imageConceptPrompt',
   input: {schema: GenerateVisualInputSchema},
   output: {schema: z.object({prompt: z.string()})},
-  prompt: `You are a creative director with expertise in visual design. Based on the following blog post and visual description, create a detailed prompt for an image generator, keeping in mind the \"Iridescent Spectrum\" visual identity (color palette, style, lighting).
+  prompt: `You are a creative director for the "Digital Diva" brand. Your task is to create a detailed image generation prompt based on the brand's "Iridescent Spectrum" visual identity.
 
-Blog Post: {{{blogPost}}}
-Visual Description: {{{visualDescription}}}
+**Visual Identity: Iridescent Spectrum**
+- **Core Concept**: A world of fluid, shimmering light. Not harsh neon, but soft, flowing rainbow gradients and ethereal glows against a dark, atmospheric backdrop.
+- **Color Palette**: Dominated by deep charcoals and indigos ("Midnight Matrix"), serving as a canvas for vibrant, flowing gradients of pink, purple, cyan, and lime.
+- **Imagery Style**: A "digital painting" or "concept art" style featuring stylized figures, holographic interfaces, and moody, luminous cityscapes. The visuals are cinematic and immersive.
 
-Detailed Image Generation Prompt:`,
+Based on the blog post content and the user's visual description below, create a detailed prompt for an image generator that perfectly captures the "Iridescent Spectrum" aesthetic.
+
+**Blog Post Content**: {{{blogPost}}}
+**User's Visual Description**: {{{visualDescription}}}
+
+**Detailed Image Generation Prompt:**`,
 });
 
 const generateVisualFlow = ai.defineFlow(
