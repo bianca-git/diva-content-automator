@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    // This allows the Next.js dev server to accept requests from any origin.
+    // This is necessary for development in a cloud-based environment.
+    allowedDevOrigins: ["**"],
+  }
 };
 
 export default nextConfig;
