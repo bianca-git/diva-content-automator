@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {retryWithBackoff} from '@/lib/utils';
 
 const GenerateSocialPostsInputSchema = z.object({
   title: z.string().describe('The title of the blog post.'),
@@ -58,7 +59,12 @@ const generateSocialPostsFlow = ai.defineFlow(
     outputSchema: GenerateSocialPostsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+     return retryWithBackoff(async () => {
+      const {output} = await prompt(input);
+      if (!output) {
+        throw new Error("No output from prompt.");
+      }
+      return output;
+    });
   }
 );

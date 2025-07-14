@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {retryWithBackoff} from '@/lib/utils';
 
 const GenerateVisualInputSchema = z.object({
   visualDescription: z
@@ -54,32 +55,34 @@ const generateVisualFlow = ai.defineFlow(
     outputSchema: GenerateVisualOutputSchema,
   },
   async input => {
-    const {output: imagePromptOutput} = await imageConceptPrompt(input);
-    const imagePrompt = imagePromptOutput?.prompt;
+    return retryWithBackoff(async () => {
+      const {output: imagePromptOutput} = await imageConceptPrompt(input);
+      const imagePrompt = imagePromptOutput?.prompt;
 
-    if (!imagePrompt) {
-      throw new Error('Failed to generate image prompt.');
-    }
+      if (!imagePrompt) {
+        throw new Error('Failed to generate image prompt.');
+      }
 
-    const {media} = await ai.generate({
-      // IMPORTANT: ONLY the googleai/gemini-2.0-flash-preview-image-generation model is able to generate images. You MUST use exactly this model to generate images.
-      model: 'googleai/gemini-2.0-flash-preview-image-generation',
+      const {media} = await ai.generate({
+        // IMPORTANT: ONLY the googleai/gemini-2.0-flash-preview-image-generation model is able to generate images. You MUST use exactly this model to generate images.
+        model: 'googleai/gemini-2.0-flash-preview-image-generation',
 
-      // simple prompt
-      prompt: imagePrompt,
+        // simple prompt
+        prompt: imagePrompt,
 
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
-      },
+        config: {
+          responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
+        },
+      });
+
+      if (!media) {
+        throw new Error('Failed to generate image.');
+      }
+
+      return {
+        imagePrompt: imagePrompt,
+        imageUrl: media.url,
+      };
     });
-
-    if (!media) {
-      throw new Error('Failed to generate image.');
-    }
-
-    return {
-      imagePrompt: imagePrompt,
-      imageUrl: media.url,
-    };
   }
 );
