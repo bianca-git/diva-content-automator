@@ -96,7 +96,7 @@ export function WorkflowPanel({
       <WorkflowStep
         stepNumber={3}
         title="Generate Visual"
-        isUnlocked={!!downloadableContent}
+        isUnlocked={!!blogPost}
         isGenerating={isLoading.visual}
         onGenerate={onGenerateVisual}
         hasContent={!!visual}
@@ -128,7 +128,7 @@ export function WorkflowPanel({
       <WorkflowStep
         stepNumber={4}
         title="Generate Social Posts"
-        isUnlocked={!!visual}
+        isUnlocked={!!selectedTopic}
         isGenerating={isLoading.social}
         onGenerate={onGenerateSocialPosts}
         hasContent={!!socialPosts}
