@@ -1,7 +1,7 @@
 import {createClient} from '@sanity/client';
 
 export const sanityClient = createClient({
-  projectId: 'nzlrkqtz',
+  projectId: process.env.SANITY_PROJECT_ID || (() => { throw new Error('SANITY_PROJECT_ID is not defined'); })(),
   dataset: 'production',
   token: process.env.SANITY_TOKEN,
   useCdn: false,
