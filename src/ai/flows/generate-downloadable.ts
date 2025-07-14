@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview A flow to generate downloadable content ("Digital Elixirs") based on a blog post.
+ * @fileOverview A flow to generate downloadable content ("Digital Elixirs") as a stylized PDF.
  *
  * - generateDownloadable - A function that handles the downloadable content generation process.
  * - GenerateDownloadableInput - The input type for the generateDownloadable function.
@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {retryWithBackoff} from '@/lib/utils';
+import {PDFDocument, rgb, StandardFonts} from 'pdf-lib';
 
 const GenerateDownloadableInputSchema = z.object({
   title: z.string().describe('The title of the blog post.'),
@@ -26,10 +27,10 @@ export type GenerateDownloadableInput = z.infer<
 >;
 
 const GenerateDownloadableOutputSchema = z.object({
-  downloadableContent: z
+  pdfBase64: z
     .string()
     .describe(
-      'The generated downloadable content in markdown format, ready to be presented as a "Digital Elixir".'
+      'The generated downloadable content as a Base64-encoded PDF string.'
     ),
 });
 export type GenerateDownloadableOutput = z.infer<
@@ -42,10 +43,12 @@ export async function generateDownloadable(
   return generateDownloadableFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateDownloadablePrompt',
+const markdownPrompt = ai.definePrompt({
+  name: 'generateDownloadableMarkdownPrompt',
   input: {schema: GenerateDownloadableInputSchema},
-  output: {schema: GenerateDownloadableOutputSchema},
+  output: {schema: z.object({
+    downloadableContent: z.string().describe('The downloadable content in markdown format.')
+  })},
   prompt: `You are the "Digital Diva," a persona also known as the "Cyberpunk Siren." Your identity is defined by:
 
 - **Core Trait**: Strategic Wit with a Didactic Purpose. You use sharp, sophisticated humor to deconstruct problems, but your underlying goal is to genuinely empower the user.
@@ -66,6 +69,73 @@ Your task is to create a "Digital Elixir"—a piece of downloadable content that
 Now, concoct the Digital Elixir. Present it as a potent, diligently acquired insight. It must be foolproof, fast, and fabulous.`,
 });
 
+async function createStyledPdf(title: string, markdownContent: string): Promise<string> {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage();
+  const { width, height } = page.getSize();
+  
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  // Midnight Matrix background
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width,
+    height,
+    color: rgb(15/255, 23/255, 42/255), // Indigo/Charcoal
+  });
+  
+  const textColor = rgb(224, 231, 255); // Light foreground
+  const accentColor = rgb(219, 39, 119); // Pink/Accent
+
+  let y = height - 50;
+  
+  // Title
+  page.drawText(title, {
+    x: 50,
+    y,
+    font: boldFont,
+    size: 24,
+    color: accentColor,
+  });
+  y -= 40;
+
+  // Body text from markdown
+  const lines = markdownContent.split('\n');
+  for (const line of lines) {
+    if (y < 50) {
+      // Add a new page if content overflows
+      const newPage = pdfDoc.addPage();
+      newPage.drawRectangle({ x: 0, y: 0, width, height, color: rgb(15/255, 23/255, 42/255) });
+      y = height - 50;
+    }
+    
+    let currentFont = font;
+    let size = 12;
+    let x = 50;
+
+    if (line.startsWith('# ')) {
+        currentFont = boldFont;
+        size = 18;
+        page.drawText(line.substring(2), { x, y, font: currentFont, size, color: textColor });
+    } else if (line.startsWith('## ')) {
+        currentFont = boldFont;
+        size = 16;
+        page.drawText(line.substring(3), { x, y, font: currentFont, size, color: textColor });
+    } else if (line.startsWith('* ')) {
+        page.drawText(`• ${line.substring(2)}`, { x: x + 10, y, font, size, color: textColor });
+    } else if (line.trim() !== '') {
+        page.drawText(line, { x, y, font, size, color: textColor });
+    }
+    y -= (size * 1.5);
+  }
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes).toString('base64');
+}
+
+
 const generateDownloadableFlow = ai.defineFlow(
   {
     name: 'generateDownloadableFlow',
@@ -74,11 +144,14 @@ const generateDownloadableFlow = ai.defineFlow(
   },
   async input => {
     return retryWithBackoff(async () => {
-      const {output} = await prompt(input);
+      const {output} = await markdownPrompt(input);
       if (!output) {
-        throw new Error("No output from prompt.");
+        throw new Error("No markdown output from prompt.");
       }
-      return output;
+      
+      const pdfBase64 = await createStyledPdf(input.title, output.downloadableContent);
+
+      return { pdfBase64 };
     });
   }
 );

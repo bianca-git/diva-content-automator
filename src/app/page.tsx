@@ -122,7 +122,7 @@ export default function Home() {
         blogPost: blogPost,
         downloadableType: selectedTopic.Downloadable
       });
-      setDownloadableContent(result.downloadableContent);
+      setDownloadableContent(result.pdfBase64);
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: "Downloadable Error", description: "Failed to generate downloadable content." });

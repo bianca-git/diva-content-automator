@@ -5,12 +5,13 @@ import type { Topic, Visual, SocialPosts } from '@/app/page';
 import { WorkflowStep } from './workflow-step';
 import { CopyButton } from './copy-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Separator } from '../ui/separator';
+import { Button } from '../ui/button';
+import { Download } from 'lucide-react';
 
 type WorkflowPanelProps = {
   selectedTopic: Topic | null;
   blogPost: string | null;
-  downloadableContent: string | null;
+  downloadableContent: string | null; // This is now a base64 PDF string
   visual: Visual | null;
   socialPosts: SocialPosts | null;
   isLoading: { blog: boolean; downloadable: boolean; visual: boolean; social: boolean; };
@@ -42,6 +43,16 @@ export function WorkflowPanel({
     );
   }
 
+  const handleDownloadPdf = () => {
+    if (!downloadableContent || !selectedTopic) return;
+    const link = document.createElement("a");
+    link.href = `data:application/pdf;base64,${downloadableContent}`;
+    link.download = `${selectedTopic.Title.replace(/ /g, '_')}_Elixir.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-8">
       <WorkflowStep
@@ -72,11 +83,12 @@ export function WorkflowPanel({
         hasContent={!!downloadableContent}
       >
         {downloadableContent && (
-          <div className="space-y-4">
-            <div className="prose prose-sm max-w-none h-96 overflow-y-auto p-4 border rounded-md bg-secondary/30">
-              <pre className="whitespace-pre-wrap font-body text-sm">{downloadableContent}</pre>
-            </div>
-            <CopyButton textToCopy={downloadableContent} />
+          <div className="space-y-4 text-center">
+            <p className="text-muted-foreground">Your "Digital Elixir" PDF is ready.</p>
+            <Button onClick={handleDownloadPdf}>
+              <Download className="mr-2 h-4 w-4" />
+              Download PDF
+            </Button>
           </div>
         )}
       </WorkflowStep>
